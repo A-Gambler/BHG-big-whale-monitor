@@ -1,15 +1,15 @@
 import firebase from 'firebase';
 
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDP2N1EL1pFOswYWeNaUZzBozz0cF_Rdn4",
-    authDomain: "swap-monitor.firebaseapp.com",
-    projectId: "swap-monitor",
-    storageBucket: "swap-monitor.appspot.com",
-    messagingSenderId: "66081591437",
-    appId: "1:66081591437:web:3b99f0307154bcb86412c4",
-    measurementId: "G-0XT1CSM8K5"
-  };
+const  firebaseConfig = {
+  apiKey: "AIzaSyBPBYhgSs83--_FPTz5VrmdgwFB5m51dMY",
+  authDomain: "big-whale-monitor.firebaseapp.com",
+  projectId: "big-whale-monitor",
+  storageBucket: "big-whale-monitor.appspot.com",
+  messagingSenderId: "1004702123061",
+  appId: "1:1004702123061:web:0e481505682c24cdd59d7c",
+  measurementId: "G-PZTLH8T3TE"
+};
 
   firebase.initializeApp(firebaseConfig);
   firebase.analytics();

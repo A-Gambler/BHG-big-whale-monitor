@@ -10,7 +10,13 @@ import { database } from './firebase/firebase'
 
 
 
-const url = "wss://ancient-proud-sky.quiknode.pro/448fa0f4002c4f02ba95c5a1f77c1c2bfa343bd5/";
+const url = "wss://dawn-shy-voice.bsc.quiknode.pro/f929e892df513a1ad658ca2046aec0768f3817e5/";
+const mWBNB = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c";
+const mUsdt = "0x55d398326f99059ff775485246999027b3197955";
+const mRouter = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
+const mLimit  = 3000;
+
+
 export var rendertable;
 const options = {
   timeout: 30000,
@@ -45,8 +51,8 @@ class Display extends Component {
             fromAddresFilter : '',
             //------------
             ID : 0,
-            toAddress : '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
-            fromAddress : '',
+            toAddress : mRouter,
+            wallet : '',
             timeStamp : 0,
             label : '',
             tokenIn : '',
@@ -71,7 +77,8 @@ class Display extends Component {
 
     async getRating () {
        let mycontract = new web3.eth.Contract(abi, this.state.toAddress)
-       let rating  = await mycontract.methods.getAmountsOut(1000000000000, ['0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2','0xdac17f958d2ee523a2206206994597c13d831ec7']).call();
+       let rating  = await mycontract.methods.getAmountsOut(1000000000000, [mWBNB, mUsdt]).call();
+       rating = rating / 1000000
        this.setState ({rating: rating[1]});
     }
 
@@ -120,6 +127,7 @@ class Display extends Component {
                             tokenOut : value.tokenOut,
                             amountOut : value.amountOut,
                             payLoad : value.payLoad,
+                            wallet  : value.wallet,
                         })
                     })
                 }
@@ -157,15 +165,11 @@ class Display extends Component {
                                
                                {
 
-
+                            
                                 let checkAddress = web3.utils.toChecksumAddress(tx.from)
-
-                            for (let i = 0; i < this.state.fromAddresFilter.length; i++) {
-                                if (checkAddress == this.state.fromAddresFilter[i]["Address"]){
                                     
                                     let transaction = {
-                                        fromAddress : tx.from,
-                                        label : this.state.fromAddresFilter[i]["Label"],
+                                        wallet : tx.from,
                                         timeStamp : new Date().toISOString(),
                                     }
                                     //----------------------------TokenforETH----------------------------------------
@@ -276,36 +280,38 @@ class Display extends Component {
                                         transaction.payLoad     = transaction.amountIn   * this.state.rating
                                     }
                                     
-                                    transaction.ID        = this.state.ID + 1
-                                    transaction.txHash    = tx.hash
-                                    transaction.amountIn  = Math.round(transaction.amountIn * 100000) / 100000
-                                    transaction.amountOut = Math.round(transaction.amountOut * 100000) / 100000
-                                    transaction.payLoad   = "$"+Math.round(transaction.payLoad * 100)/ 100
-                                    
-                                    let transactions    = this.state.transactions
-                                    
-                                    transactions.push(transaction)
-                                    this.setState(transaction);
-        
-                                    this.setState({
-                                        transactions : transactions
-                                    })
-        
-                                    const Insert_transaction = {
-                                        timeStamp : transaction.timeStamp,
-                                        label     : transaction.label,
-                                        tokenIn   : transaction.tokenIn,
-                                        amountIn  : transaction.amountIn,
-                                        tokenOut  : transaction.tokenOut,
-                                        amountOut : transaction.amountOut,
-                                        payLoad   : transaction.payLoad
+                                    if (transaction.payLoad > mLimit) {
+                                        transaction.ID        = this.state.ID + 1
+                                        transaction.txHash    = tx.hash
+                                        transaction.amountIn  = Math.round(transaction.amountIn * 100000) / 100000
+                                        transaction.amountOut = Math.round(transaction.amountOut * 100000) / 100000
+                                        transaction.payLoad   = "$"+Math.round(transaction.payLoad * 100)/ 100
+                                        
+                                        let transactions    = this.state.transactions
+                                        
+                                        transactions.push(transaction)
+                                        this.setState(transaction);
+            
+                                        this.setState({
+                                            transactions : transactions
+                                        })
+            
+                                        const Insert_transaction = {
+                                            timeStamp : transaction.timeStamp,
+                                            wallet    : transaction.wallet,
+                                            tokenIn   : transaction.tokenIn,
+                                            amountIn  : transaction.amountIn,
+                                            tokenOut  : transaction.tokenOut,
+                                            amountOut : transaction.amountOut,
+                                            txhash    : transaction.txHash,
+                                            payLoad   : transaction.payLoad
+                                        }
+    
+                                        var userListRef = database.ref('transactions')
+                                        var newUserRef = userListRef.push();
+                                        newUserRef.set(Insert_transaction);
                                     }
 
-                                    var userListRef = database.ref('transactions')
-                                    var newUserRef = userListRef.push();
-                                    newUserRef.set(Insert_transaction);
-                                } 
-                            }
                         }
                     }
                     } catch (err) {
@@ -323,17 +329,10 @@ class Display extends Component {
 
     render () {
       var rows = []
-    if(this.state.toAddress == 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D){
+    if(this.state.toAddress == mRouter){
          rows  = this.state.transactions.map((transaction) => {
-            transaction.dexLink     = <a href="https://app.uniswap.org/#/swap" target="_blank">Swap Interface</a>
-            transaction.txHashLink  = <a href={"https://etherscan.io/tx/" + transaction.txHash} target="_blank">Click Here</a>
-            return transaction
-        })
-    }
-    if(this.state.toAddress == 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F){
-        rows  = this.state.transactions.map((transaction) => {
-            transaction.dexLink     = <a href="https://staging.sushi.com/#/swap" target="_blank">Swap Interface</a>
-            transaction.txHashLink  = <a href={"https://etherscan.io/tx/" + transaction.txHash} target="_blank">Click Here</a>
+            transaction.dexLink     = <a href="https://pancakeswap.finance/swap" target="_blank">Swap Interface</a>
+            transaction.txHashLink  = <a href={"https://bscscan.com/tx/" + transaction.txHash} target="_blank">Click Here</a>
             return transaction
         })
     }
@@ -341,31 +340,31 @@ class Display extends Component {
 
     const data = {
             columns : [
-                
+
                 {
                     label : 'Timestamp',
                     field : 'timeStamp',
                 },
                 {
-                    label : 'Label',
-                    field : 'label',
+                    label : 'wallet',
+                    field : 'wallet',
                 },
                 {
                     label : 'Token In',
                     field : 'tokenIn',
                 },
-                {
-                    label : 'Amount In',
-                    field : 'amountIn',
-                },
+                // {
+                //     label : 'Amount In',
+                //     field : 'amountIn',
+                // },
                 {
                     label : 'Token Out',
                     field : 'tokenOut',
                 },
-                {
-                    label : 'Amount Out',
-                    field : 'amountOut',
-                },
+                // {
+                //     label : 'Amount Out',
+                //     field : 'amountOut',
+                // },
                 {
                     label : 'Payload',
                     field : 'payLoad',
@@ -391,11 +390,11 @@ class Display extends Component {
 
     return (
             <div>
-            <h2>MONITORED DEX SWAPS</h2>
+            <h2>MONITORED DEX SWAPS ( over ${mLimit} )</h2>
             <hr/><br/><br/>
             <InputGroup className="mb-2">
                 <InputGroup.Text id="basic-addon3">
-                    Uniswap Router Address
+                    Pancakeswap Router Address
                 </InputGroup.Text>
                 <FormControl
                     placeholder={this.state.toAddress}
@@ -405,7 +404,7 @@ class Display extends Component {
                     onChange={handleRouterAddress}
                 />
                 <Button variant="success" id="button-addon2" onClick={()=>this.load()}>
-                        Load from firebase
+                        Load from DB
                 </Button>
                 <Button variant={this.state.subscriptingstate ? "danger" : "primary"} id="button-addon2" onClick={this.state.subscriptingstate ?()=>this.stop():()=>this.init()}>
                         {this.state.subscriptingstate ? "Stop Monitor" : "Start Monitor"}
@@ -422,8 +421,8 @@ class Display extends Component {
                     data
                 }
             />
-            <p> Uniswap   Address : 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D </p>
-            <p> Sushiswap Address : 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F</p>
+{/*            <p> Uniswap   Address : 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D </p>
+            <p> Sushiswap Address : 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F</p>*/}
             </div>
         );
     }
