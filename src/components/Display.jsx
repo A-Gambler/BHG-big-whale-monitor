@@ -104,8 +104,7 @@ class Display extends Component {
                             amountOut : value.amountOut,
                             payLoad : value.payLoad,
                             wallet  : value.wallet,
-                            txhash  : value.txhash
-
+                            txHash  : value.txhash
                         })
                     })
                 }
