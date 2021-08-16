@@ -83,8 +83,8 @@ class Display extends Component {
     }
 
 
-    async componentWillMount() {
-        await this.getRating()
+    componentWillMount() {
+        // await this.getRating()
     }
 
     async load(){
